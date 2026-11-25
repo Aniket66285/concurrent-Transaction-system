@@ -1,0 +1,10 @@
+/build/
+/data/*.db
+/data/*.wal
+/data/*.master
+/data/*.tmp
+*.o
+*.a
+*.so
+__pycache__/
+*.pyc

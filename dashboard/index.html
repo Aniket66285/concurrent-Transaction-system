@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>MiniDB Systems Lab | DBMS + OS</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">M<span>DB</span></div>
+        <div><div class="brand-name">MiniDB</div><div class="brand-subtitle">INTEGRATED DBMS + OS SYSTEMS LAB</div></div>
+      </div>
+
+      <div class="nav-caption">WORKSPACE</div>
+      <nav class="nav-list" aria-label="Main navigation">
+        <button class="nav-item active" data-page="overview"><span class="nav-icon">◫</span>Overview</button>
+        <button class="nav-item" data-page="workbench"><span class="nav-icon">⌘</span>SQL Workbench</button>
+        <button class="nav-item" data-page="sessions"><span class="nav-icon">◉</span>Sessions <span class="nav-count" id="sidebar-session-count">0</span></button>
+      </nav>
+
+      <div class="nav-caption nav-caption-spaced">ENGINE</div>
+      <nav class="nav-list" aria-label="Engine navigation">
+        <button class="nav-item" data-page="memory"><span class="nav-icon">▦</span>Buffer Pool</button>
+        <button class="nav-item" data-page="concurrency"><span class="nav-icon">⇄</span>Concurrency Lab</button>
+        <button class="nav-item" data-page="os"><span class="nav-icon">⌁</span>OS Scheduling Lab</button>
+        <button class="nav-item" data-page="storage"><span class="nav-icon">▤</span>Storage</button>
+        <button class="nav-item" data-page="recovery"><span class="nav-icon">↻</span>Recovery & WAL</button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="connection-card">
+          <div class="connection-top"><span class="status-dot" id="sidebar-status-dot"></span><span id="sidebar-status-text">Checking server…</span></div>
+          <div class="connection-url">127.0.0.1:8080</div>
+          <button class="text-button" id="reconnect-btn">↻ Check connection</button>
+        </div>
+        <div class="sidebar-footer">MiniDB · C++17 engine</div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobile-menu" aria-label="Open navigation">☰</button>
+        <div class="breadcrumb"><span>MiniDB</span><span class="crumb-sep">/</span><strong id="page-breadcrumb">Overview</strong></div>
+        <div class="topbar-right">
+          <div class="server-pill"><span class="status-dot" id="top-status-dot"></span><span id="top-status-text">Connecting</span></div>
+          <div class="topbar-runtime"><span id="top-pid">PID —</span><span id="top-workers">Workers: 3</span><span id="top-frames">Buffer: 4</span><span id="top-uptime">Uptime —</span></div>
+          <button class="icon-button" id="refresh-btn" title="Refresh data" aria-label="Refresh">↻</button>
+          <div class="avatar">DB</div>
+        </div>
+      </header>
+
+      <div class="content" id="page-content">
+        <section class="page active" id="page-overview">
+          <div class="page-heading">
+            <div><div class="eyebrow">SYSTEM OVERVIEW</div><h1>Control Center</h1><p class="page-description">Your database engine at a glance.</p></div>
+            <div class="heading-actions"><span class="last-updated" id="last-updated">Not refreshed yet</span><button class="button button-primary" data-go="workbench">Open SQL Workbench <span>↗</span></button></div>
+          </div>
+
+          <div class="stat-grid">
+            <article class="stat-card"><div class="stat-label">SERVER STATUS <span class="stat-symbol green">●</span></div><div class="stat-value" id="overview-server">Checking</div><div class="stat-foot" id="overview-server-foot">API health endpoint</div></article>
+            <article class="stat-card"><div class="stat-label">ACTIVE SESSIONS <span class="stat-symbol blue">◉</span></div><div class="stat-value" id="overview-sessions">—</div><div class="stat-foot">Connected SQL clients</div></article>
+            <article class="stat-card"><div class="stat-label">WORKER THREADS <span class="stat-symbol purple">⌁</span></div><div class="stat-value">3</div><div class="stat-foot">Configured worker count</div></article>
+            <article class="stat-card"><div class="stat-label">BUFFER FRAMES <span class="stat-symbol amber">▦</span></div><div class="stat-value">4</div><div class="stat-foot">Configured · 4 KB per page</div></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel quick-panel">
+              <div class="panel-header"><div><h2>Quick SQL</h2><p>Run a query using your active session.</p></div><span class="panel-tag">LIVE API</span></div>
+              <textarea id="quick-sql" class="quick-editor" spellcheck="false">SELECT * FROM students;</textarea>
+              <div class="panel-footer"><span class="muted-small" id="quick-session-label">No session selected</span><button class="button button-primary button-small" id="quick-run">Run query <span>→</span></button></div>
+              <div id="quick-result" class="quick-result hidden"></div>
+            </article>
+
+            <article class="panel session-panel">
+              <div class="panel-header"><div><h2>Sessions</h2><p>Independent SQL client connections.</p></div><button class="button button-secondary button-small" data-go="sessions">Manage</button></div>
+              <div id="overview-session-list" class="compact-list"><div class="empty-state">Loading sessions…</div></div>
+              <div class="panel-footer"><span class="muted-small">Session lifecycle</span><button class="text-button" id="overview-new-session">＋ New session</button></div>
+            </article>
+          </div>
+
+          <article class="panel architecture-panel">
+            <div class="panel-header"><div><h2>Engine configuration</h2><p>Configured architecture values, not live utilization metrics.</p></div><span class="panel-tag neutral-tag">CONFIGURATION</span></div>
+            <div class="architecture-flow">
+              <div class="architecture-node"><span class="node-icon">⇥</span><div><strong>HTTP API</strong><small>Port 8080</small></div></div><span class="flow-arrow">→</span>
+              <div class="architecture-node"><span class="node-icon">▤</span><div><strong>Request queue</strong><small>Capacity 8</small></div></div><span class="flow-arrow">→</span>
+              <div class="architecture-node"><span class="node-icon">⌁</span><div><strong>Worker pool</strong><small>3 threads</small></div></div><span class="flow-arrow">→</span>
+              <div class="architecture-node"><span class="node-icon">▦</span><div><strong>SQL engine</strong><small>Sessions & transactions</small></div></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="page" id="page-workbench">
+          <div class="page-heading"><div><div class="eyebrow">QUERY INTERFACE</div><h1>SQL Workbench</h1><p class="page-description">Execute SQL statements against your running MiniDB server.</p></div><div class="heading-actions"><select id="workbench-session" class="select-control" aria-label="Active SQL session"><option value="">No session</option></select><button class="button button-secondary" id="workbench-new-session">＋ New session</button><button class="button button-secondary" data-go="concurrency">Concurrent (2 Clients)</button><button class="button button-secondary" data-go="os">Experiment Mode</button></div></div>
+          <div class="workbench-layout">
+            <div class="workbench-main">
+              <article class="panel editor-panel">
+                <div class="editor-toolbar"><div class="editor-tab"><span class="file-dot"></span> query.sql <span class="unsaved-mark">●</span></div><div class="editor-actions"><button class="text-button" id="clear-sql">Clear</button><button class="text-button" id="format-sql">Uppercase keywords</button></div></div>
+                <div class="editor-wrap"><div class="line-numbers" id="line-numbers">1</div><textarea id="sql-editor" spellcheck="false" autocapitalize="off" autocomplete="off">CREATE TABLE students (id INT, name VARCHAR(50));
+INSERT INTO students VALUES (1, 'Aman');
+SELECT * FROM students;</textarea></div>
+                <div class="editor-footer"><span class="muted-small">Ctrl + Enter to execute · Separate statements with semicolons</span><button class="button button-primary" id="run-sql">▶ Run SQL</button></div>
+              </article>
+              <article class="panel results-panel">
+                <div class="panel-header results-header"><div><h2>Query Results</h2><p id="result-summary">Results will appear here after execution.</p></div><span class="result-state" id="result-state">IDLE</span></div>
+                <div id="query-results" class="results-content"><div class="empty-state large-empty"><div class="empty-icon">⌘</div><strong>No query executed</strong><span>Write a SQL statement and press Run SQL.</span></div></div>
+              </article>
+            </div>
+            <aside class="workbench-aside">
+              <article class="panel"><div class="panel-header"><div><h2>Examples</h2><p>Click to load into editor.</p></div></div><div class="example-list">
+                <button class="example-item" data-query="CREATE TABLE students (id INT, name VARCHAR(50));"><strong>Create table</strong><code>CREATE TABLE …</code></button>
+                <button class="example-item" data-query="INSERT INTO students VALUES (1, 'Aman');"><strong>Insert row</strong><code>INSERT INTO …</code></button>
+                <button class="example-item" data-query="SELECT * FROM students;"><strong>Select all</strong><code>SELECT * FROM …</code></button>
+                <button class="example-item" data-query="UPDATE students SET name = 'Aniket' WHERE id = 1;"><strong>Update row</strong><code>UPDATE … SET …</code></button>
+                <button class="example-item" data-query="DELETE FROM students WHERE id = 1;"><strong>Delete row</strong><code>DELETE FROM …</code></button>
+                <button class="example-item" data-query="BEGIN;\nINSERT INTO students VALUES (2, 'Test');\nROLLBACK;"><strong>Transaction rollback</strong><code>BEGIN / ROLLBACK</code></button>
+              </div></article>
+              <article class="panel info-panel"><div class="info-icon">i</div><div><strong>Session isolation</strong><p>Queries run in the selected session. An open transaction remains associated with that session until COMMIT, ROLLBACK, or disconnect.</p></div></article>
+            </aside>
+          </div>
+        </section>
+
+        <section class="page" id="page-sessions">
+          <div class="page-heading"><div><div class="eyebrow">CLIENT CONNECTIONS</div><h1>Sessions</h1><p class="page-description">Create and manage independent SQL client sessions.</p></div><button class="button button-primary" id="create-session">＋ Create session</button></div>
+          <article class="panel"><div class="panel-header"><div><h2>Session registry</h2><p id="session-page-summary">Loading sessions…</p></div><button class="button button-secondary button-small" id="refresh-sessions">↻ Refresh</button></div><div id="sessions-table" class="table-container"><div class="empty-state">Loading sessions…</div></div></article>
+          <article class="panel session-explainer">
+            <div class="panel-header"><div><h2>Session kya hota hai?</h2><p>Session ek connected SQL client ka independent context hai; ye Linux thread ya process nahi hota.</p></div></div>
+            <div class="session-concept-grid">
+              <div><strong>Session ID (S1)</strong><span>Client connection ki identity. Client A aur B ke IDs alag honge.</span></div>
+              <div><strong>Transaction ID (T1)</strong><span>BEGIN ke baad transaction ko milta hai. COMMIT/ROLLBACK tak locks hold ho sakte hain.</span></div>
+              <div><strong>Worker TID</strong><span>Linux kernel thread jo HTTP request execute kar raha hai. Ek request alag worker par run ho sakti hai.</span></div>
+            </div>
+            <div class="notice"><span>ⓘ</span><p>Closing a session asks the backend to close the client connection. The SQL engine automatically rolls back an active transaction on disconnect.</p></div>
+          </article>
+        </section>
+
+        <section class="page" id="page-memory"><div class="page-heading"><div><div class="eyebrow">MEMORY MANAGEMENT</div><h1>Buffer Pool</h1><p class="page-description">Live page-cache occupancy and pin counters from the running engine.</p></div></div><div id="memory-metrics" class="monitor-root"><div class="panel empty-state">Waiting for live metrics…</div></div></section>
+        <section class="page" id="page-concurrency">
+          <div class="page-heading">
+            <div><div class="eyebrow">TRANSACTION CONTROL · LIVE LAB</div><h1>Concurrent SQL Lab</h1><p class="page-description">Run two independent SQL sessions at the same time and observe real lock waits, worker activity and queue pressure.</p></div>
+            <div class="heading-actions"><button class="button button-secondary" id="concurrent-refresh">↻ Refresh live state</button></div>
+          </div>
+          <div class="concurrent-toolbar">
+            <button class="button button-secondary" id="concurrent-create-sessions">＋ Create / reconnect Client A & B</button>
+            <button class="button button-secondary" id="concurrent-setup-demo">▣ Setup accounts demo table</button>
+            <button class="button button-primary" id="concurrent-guided-demo">⚡ Start guided lock-wait demo</button>
+            <button class="button button-secondary" id="concurrent-run-both">▶ Run both clients together</button>
+            <span class="muted-small" id="concurrent-session-summary">Preparing independent sessions…</span>
+          </div>
+          <div class="concurrent-client-grid">
+            <article class="panel concurrent-client client-a-panel">
+              <div class="concurrent-client-heading"><div><span class="client-chip client-a-chip">A</span><div><h2>Client A</h2><small id="client-a-session">Session not connected</small></div></div><span class="client-state" id="client-a-state">IDLE</span></div>
+              <textarea id="client-a-sql" class="concurrent-editor" spellcheck="false" autocapitalize="off">BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;</textarea>
+              <div class="concurrent-actions"><button class="button button-primary" id="client-a-run">▶ Run A</button><button class="button button-secondary" data-client-command="A" data-command="COMMIT">✓ Commit</button><button class="button button-secondary" data-client-command="A" data-command="ROLLBACK">↶ Rollback</button><button class="button button-ghost" data-client-command="A" data-command="CLEAR">Clear</button></div>
+              <div class="concurrent-result" id="client-a-result" aria-live="polite">Client A output will appear here.</div>
+            </article>
+            <article class="panel concurrent-client client-b-panel">
+              <div class="concurrent-client-heading"><div><span class="client-chip client-b-chip">B</span><div><h2>Client B</h2><small id="client-b-session">Session not connected</small></div></div><span class="client-state" id="client-b-state">IDLE</span></div>
+              <textarea id="client-b-sql" class="concurrent-editor" spellcheck="false" autocapitalize="off">BEGIN;
+UPDATE accounts SET balance = balance - 50 WHERE id = 1;</textarea>
+              <div class="concurrent-actions"><button class="button button-primary" id="client-b-run">▶ Run B</button><button class="button button-secondary" data-client-command="B" data-command="COMMIT">✓ Commit</button><button class="button button-secondary" data-client-command="B" data-command="ROLLBACK">↶ Rollback</button><button class="button button-ghost" data-client-command="B" data-command="CLEAR">Clear</button></div>
+              <div class="concurrent-result" id="client-b-result" aria-live="polite">Client B output will appear here.</div>
+            </article>
+          </div>
+          <div class="notice concurrency-instructions"><span>ⓘ</span><p><strong>Lock-wait demo sequence:</strong> Setup accounts once → Run A (BEGIN + UPDATE) and wait until A says SUCCESS (its transaction still holds the row lock) → Run B (same row) and leave it RUNNING/WAITING → open the Lock Table & Wait-for Graph panel. You should see T2 → T1 and RID(page,slot) with T1 GRANTED / T2 WAITING → click Commit on A. B should then finish. Do not click Run both together for this specific demonstration because the winner is nondeterministic.</p></div>
+          <div class="concurrent-observe-grid">
+            <article class="panel"><div class="panel-header"><div><h2>Worker Threads</h2><p>Three reusable C++ threads execute accepted HTTP/SQL tasks.</p></div><span class="panel-tag">LINUX TID</span></div><div id="concurrent-worker-list" class="worker-mini-list"><div class="empty-state">Waiting for metrics…</div></div><div class="notice worker-explainer"><span>ⓘ</span><p><strong>3 workers ≠ 3 CPU cores.</strong> Up to three requests can execute at once. The other requests wait in the bounded queue (capacity 8). W1/W2/W3 are long-lived threads; TID is the Linux thread ID.</p></div></article>
+            <article class="panel"><div class="panel-header"><div><h2>Semaphore Request Queue</h2><p>Pending HTTP tasks · bounded capacity 8.</p></div></div><div id="concurrent-queue-view" class="queue-view"><div class="empty-state">Waiting for metrics…</div></div></article>
+            <article class="panel"><div class="panel-header"><div><h2>Buffer Pool</h2><p>Four 4 KB frames · live occupancy counters.</p></div><span class="panel-tag">16 KB MAX</span></div><div id="concurrent-buffer-view" class="buffer-mini-view"><div class="empty-state">Waiting for metrics…</div></div></article>
+          </div>
+          <article class="panel"><div class="panel-header"><div><h2>Lock Table & Wait-for Graph</h2><p>RID is the physical record identifier (page, slot); holders and waiters come from LockManager.</p></div><span class="panel-tag">STRICT 2PL</span></div><div id="concurrency-metrics" class="monitor-root"><div class="empty-state">Waiting for live lock state…</div></div></article>
+          <article class="panel execution-flow-panel"><div class="panel-header"><div><h2>Execution Flow</h2><p>How each independent SQL request moves through MiniDB.</p></div></div><div class="architecture-flow"><div class="architecture-node"><span class="node-icon">▣</span><div><strong>SQL Client A / B</strong><small>Independent sessions</small></div></div><span class="flow-arrow">→</span><div class="architecture-node"><span class="node-icon">⇥</span><div><strong>Semaphore Queue</strong><small>8 request slots</small></div></div><span class="flow-arrow">→</span><div class="architecture-node"><span class="node-icon">⌁</span><div><strong>Worker Pool</strong><small>3 C++ threads</small></div></div><span class="flow-arrow">→</span><div class="architecture-node"><span class="node-icon">🔒</span><div><strong>Strict 2PL</strong><small>Wait / grant / release</small></div></div><span class="flow-arrow">→</span><div class="architecture-node"><span class="node-icon">▦</span><div><strong>Buffer + WAL</strong><small>Page and log writes</small></div></div></div></article>
+          <article class="panel execution-flow-panel"><div class="panel-header"><div><h2>Execution Timeline (Live)</h2><p>Events observed from browser requests and live LockManager wait-for snapshots.</p></div><button class="button button-ghost button-small" id="concurrent-clear-timeline">Clear timeline</button></div><div id="concurrent-event-timeline" class="event-timeline"><div class="empty-state">Waiting for client activity…</div></div></article>
+        </section>
+        <section class="page" id="page-os">
+          <div class="page-heading"><div><div class="eyebrow">OPERATING SYSTEM · CPU SCHEDULING</div><h1>OS Scheduler Lab</h1><p class="page-description">Learn textbook CPU scheduling algorithms, compare waiting/turnaround/response time, and separately observe the real Linux scheduler.</p></div></div>
+
+          <article class="panel cpu-sim-panel">
+            <div class="panel-header">
+              <div><h2>CPU Scheduling Algorithm Simulator</h2><p>Discrete-time educational simulation using your process arrival, burst and priority values.</p></div>
+              <span class="panel-tag">ALGORITHM SIMULATOR</span>
+            </div>
+            <div class="cpu-sim-toolbar">
+              <label>Scheduling algorithm
+                <select id="cpu-algorithm" class="select-control">
+                  <option value="fcfs">FCFS — First Come First Served</option>
+                  <option value="sjf">SJF — Shortest Job First (Non-preemptive)</option>
+                  <option value="srtf">SRTF — Shortest Remaining Time (Preemptive)</option>
+                  <option value="priority-np">Priority — Non-preemptive</option>
+                  <option value="priority-p">Priority — Preemptive</option>
+                  <option value="rr">Round Robin</option>
+                  <option value="hrrn">HRRN — Highest Response Ratio Next</option>
+                  <option value="mlq">MLQ — Multilevel Queue</option>
+                  <option value="mlfq">MLFQ — Multilevel Feedback Queue</option>
+                </select>
+              </label>
+              <label id="cpu-quantum-wrap">Time quantum (RR · simulation units)
+                <input id="cpu-quantum" class="input-control" type="number" min="1" step="1" value="2">
+              </label>
+              <div class="cpu-priority-note">Priority rule: <strong>smaller number = higher priority</strong></div>
+            </div>
+
+            <div class="cpu-process-toolbar">
+              <div><h3>Process input table</h3><p>Arrival Time, Burst Time and Round Robin quantum use abstract simulation time units—not real wall-clock seconds. Priority is used by Priority scheduling.</p></div>
+              <div class="cpu-action-row"><button class="button button-secondary button-small" id="cpu-load-example">↻ Load example</button><button class="button button-secondary button-small" id="cpu-add-process">＋ Add process</button></div>
+            </div>
+            <div class="metrics-table-wrap cpu-process-wrap">
+              <table class="metrics-table cpu-process-table">
+                <thead><tr><th>PROCESS</th><th>ARRIVAL TIME (AT)</th><th>BURST TIME (BT)</th><th>PRIORITY</th><th>QUEUE (MLQ)</th><th>ACTION</th></tr></thead>
+                <tbody id="cpu-process-rows"></tbody>
+              </table>
+            </div>
+            <div class="cpu-policy-explainer"><strong>MLQ policy:</strong> Queue 0 = highest priority (Round Robin, quantum 2), Queue 1 = medium priority (Round Robin, quantum 4), Queue 2 = lowest priority (FCFS). Higher queues preempt lower queues. <strong>MLFQ policy:</strong> every process starts in Queue 0; using its full quantum demotes it to the next queue (2/4/8), with a global priority boost every 30 time units. These are explicit teaching variants.</div>
+            <div class="cpu-sim-actions">
+              <button class="button button-primary" id="cpu-run">▶ Run selected algorithm</button>
+              <button class="button button-secondary" id="cpu-compare">⇄ Compare all algorithms</button>
+              <span class="muted-small" id="cpu-sim-status">Ready · 4 sample processes loaded</span>
+            </div>
+
+            <div id="cpu-sim-result" class="cpu-sim-result">
+              <div class="empty-state">Enter process details and run an algorithm to generate its Gantt chart and scheduling metrics.</div>
+            </div>
+            <div id="cpu-compare-result" class="cpu-compare-result"></div>
+          </article>
+
+          <div class="notice cpu-sim-note"><span>ⓘ</span><p><strong>Important distinction:</strong> FCFS, SJF, SRTF, Priority, Round Robin and HRRN below are textbook algorithm simulations. They do not replace or control Linux's real kernel scheduler. The experiment below runs workload on actual MiniDB worker threads and measures Linux counters.</p></div>
+
+          <article class="panel linux-scheduler-reference">
+            <div class="panel-header"><div><h2>Linux scheduler policies — real OS</h2><p>These are kernel scheduling policies; availability/privileges depend on the host OS and process permissions.</p></div><span class="panel-tag">KERNEL CONCEPTS</span></div>
+            <div class="linux-policy-grid">
+              <div class="linux-policy-card"><strong>SCHED_OTHER</strong><span>Normal time-sharing policy used by ordinary application threads.</span><small>MiniDB worker baseline</small></div>
+              <div class="linux-policy-card"><strong>SCHED_FIFO</strong><span>Real-time fixed-priority scheduling; a runnable higher-priority thread can preempt lower priority.</span><small>May require elevated privilege</small></div>
+              <div class="linux-policy-card"><strong>SCHED_RR</strong><span>Real-time round-robin among threads at the same real-time priority.</span><small>Not the same as the RR simulator</small></div>
+            </div>
+          </article>
+          <article class="panel scheduler-experiment-panel">
+            <div class="panel-header"><div><h2>CPU-bound scheduling experiment</h2><p>Tasks execute on the three long-lived WorkerPool threads. Measurements are read from Linux procfs and schedstat.</p></div><span class="panel-tag">REAL WORKER TIDS</span></div>
+            <div class="scheduler-controls"><label>Worker threads<select id="scheduler-thread-count" class="select-control"><option value="1">1 worker</option><option value="2">2 workers</option><option value="3" selected>3 workers</option></select></label><label>CPU workload duration<select id="scheduler-duration" class="select-control"><option value="500">0.5 seconds</option><option value="1000">1 second</option><option value="2000" selected>2 seconds</option><option value="3000">3 seconds</option><option value="5000">5 seconds</option></select></label><button class="button button-primary" id="scheduler-start">▶ Start CPU scheduling experiment</button><span class="result-state" id="scheduler-status">IDLE</span></div>
+            <div class="notice scheduler-duration-help"><span>ⓘ</span><p><strong>Duration ka matlab:</strong> Har selected worker ko requested wall-clock interval tak CPU-bound task diya jata hai. 2 seconds means experiment roughly 2 seconds chalega; ye Round Robin quantum, process burst time, ya CPU frequency nahi hai. Actual CPU-time delta is interval ke andar jitna CPU mila, woh alag measured value hai.</p></div>
+            <div id="scheduler-experiment-result" class="scheduler-results"><div class="empty-state">Choose worker count and duration, then start the experiment.</div></div>
+          </article>
+          <div class="notice"><span>ⓘ</span><p><strong>How to interpret:</strong> CPU time and run-queue wait are measured deltas for each worker during the experiment; context-switch and timeslice counts come from Linux counters. Scheduler policy/priority are the thread's actual Linux settings. Last CPU is the last processor recorded by the kernel, not a guaranteed current core. This is measurement, not a fabricated Gantt chart.</p></div>
+          <div id="os-metrics" class="monitor-root"><div class="panel empty-state">Waiting for live metrics…</div></div>
+        </section>
+        <section class="page" id="page-storage"><div class="page-heading"><div><div class="eyebrow">DISK & PAGE EXPLORER</div><h1>Storage</h1><p class="page-description">Inspect the database file, actual 4 KB page headers, allocated pages, and live table schemas.</p></div></div><div id="storage-metrics" class="monitor-root"><div class="panel empty-state">Waiting for live metrics…</div></div></section>
+        <section class="page" id="page-recovery"><div class="page-heading"><div><div class="eyebrow">DURABILITY</div><h1>Recovery & WAL</h1><p class="page-description">Live WAL file size and LSN counters. Recovery integration status is shown separately.</p></div></div><div id="recovery-metrics" class="monitor-root"><div class="panel empty-state">Waiting for live metrics…</div></div></section>
+
+        <footer class="main-footer"><span>MiniDB · Educational database engine</span><span>API: <code>127.0.0.1:8080</code></span></footer>
+      </div>
+    </main>
+  </div>
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/monitoring.js"></script>
+  <script src="js/concurrent_lab.js"></script>
+  <script src="js/cpu_scheduling.js"></script>
+  <script src="js/cpu_scheduling_ui.js"></script>
+  <script src="js/scheduler_lab.js"></script>
+</body>
+</html>
