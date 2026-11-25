@@ -1,30 +1,35 @@
 cmake_minimum_required(VERSION 3.16)
-project(MiniDB LANGUAGES CXX)
+project(MiniDB_Final LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-add_compile_options(-Wall -Wextra)
-
-option(MINIDB_SANITIZE "none | address | thread" "none")
-if(MINIDB_SANITIZE STREQUAL "address")
-  add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
-  add_link_options(-fsanitize=address)
-elseif(MINIDB_SANITIZE STREQUAL "thread")
-  add_compile_options(-fsanitize=thread)
-  add_link_options(-fsanitize=thread)
-endif()
 
 find_package(Threads REQUIRED)
-find_package(GTest REQUIRED)
 
-add_library(minidb
-  src/storage/disk_manager.cpp
+file(GLOB_RECURSE MINIDB_CORE_SOURCES CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/src/*.cpp"
 )
-target_include_directories(minidb PUBLIC include)
-target_link_libraries(minidb PUBLIC Threads::Threads)
+
+add_library(minidb_core STATIC ${MINIDB_CORE_SOURCES})
+target_include_directories(minidb_core PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(minidb_core PUBLIC Threads::Threads)
+target_compile_options(minidb_core PRIVATE -Wall -Wextra -Wpedantic)
+
+add_executable(minidb_server apps/server_main.cpp)
+target_link_libraries(minidb_server PRIVATE minidb_core Threads::Threads)
+
+# The interactive SQL client speaks HTTP to the running server. It does not
+# open the database files itself, so separate terminal clients use independent sessions.
+add_executable(minidb_client apps/client_main.cpp)
+target_link_libraries(minidb_client PRIVATE Threads::Threads)
+target_compile_options(minidb_client PRIVATE -Wall -Wextra -Wpedantic)
 
 enable_testing()
-add_executable(disk_manager_test tests/disk_manager_test.cpp)
-target_link_libraries(disk_manager_test PRIVATE minidb GTest::gtest_main)
-add_test(NAME disk_manager_test COMMAND disk_manager_test)
+add_executable(scheduler_experiment_test tests/scheduler_experiment_test.cpp)
+target_link_libraries(scheduler_experiment_test PRIVATE minidb_core Threads::Threads)
+add_test(NAME scheduler_experiment_test COMMAND scheduler_experiment_test)
+
+add_executable(worker_pool_metrics_test tests/worker_pool_metrics_test.cpp)
+target_link_libraries(worker_pool_metrics_test PRIVATE minidb_core Threads::Threads)
+add_test(NAME worker_pool_metrics_test COMMAND worker_pool_metrics_test)
